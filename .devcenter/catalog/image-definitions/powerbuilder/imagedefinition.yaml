@@ -1,82 +1,24 @@
 $schema: "1.0"
 name: "PowerBuilder"
-image: microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc
+image: PowerBuilder2022r3-Windows11-Hibernate
 description: "This definition is for the eShop frontend engineering environment"
 
 tasks:
-  - name: ~/powershell
-    description: Install PowerBuilder
-    parameters:
-      command: |
-        Write-Host "AIB Customization: Download Files"
-        Write-Host "AIB Customization: Get Access Token"
-        $response = Invoke-WebRequest -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=${uriComponent(storageAccount)}" -Headers @{Metadata="true"} -UseBasicParsing
-        $content =$response.Content | ConvertFrom-Json
-        $access_token = $content.access_token
-        Write-Host "AIB Customization: Prepare for download"
-        New-Item -ItemType Directory -Force -Path "$env:SystemDrive\\devbox-customizations"
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-        Write-Host "AIB Customization: Download PowerBuilder file"
-        Invoke-WebRequest -Uri https://bdsimagebuilder.blob.core.windows.net/powerbuilder/PowerBuilder-2022%20R3-3356-EN-MR.zip -OutFile "$env:SystemDrive\\devbox-customizations\\PowerBuilder-2022 R3-3356-EN-MR.zip" -Headers @{ Authorization ="Bearer $access_token"; "x-ms-version" = "2020-04-08"} -UseBasicParsing
-        Invoke-WebRequest -Uri https://bdsimagebuilder.blob.core.windows.net/powerbuilder/PWRBLDR-2017-1666-UNV-EN-bds.zip -OutFile "$env:SystemDrive\\devbox-customizations\\PWRBLDR-2017-1666-UNV-EN-bds.zip" -Headers @{ Authorization ="Bearer $access_token"; "x-ms-version" = "2020-04-08"} -UseBasicParsing
-
-        Write-Host "AIB Customization: Install PowerBuilder 2022 R3"
-        Write-Host "AIB Customization: Expand zip file"
-        Expand-Archive -Path "$env:SystemDrive\\devbox-customizations\\PowerBuilder-2022 R3-3356-EN-MR.zip" -DestinationPath "$env:SystemDrive\\devbox-customizations" -Force
-        Write-Host "AIB Customization: Run installer"
-        $env:AgreeToAppeonLicense="true"
-        Push-Location -Path "$env:SystemDrive\\devbox-customizations\\PowerBuilder-2022 R3-3356-EN-MR"
-        ./silentinstall.bat --% "opt=all" "log=$env:SystemDrive\\devbox-customizations\\powerbuilder"
-        Write-Host "AIB Customization: Cleanup install files"
-        Pop-Location
-        Remove-Item -Path "$env:SystemDrive\\devbox-customizations\\PowerBuilder-2022 R3-3356-EN-MR" -Recurse -Force
-
-        Write-Host "AIB Customization: Install PowerBuilder 2017"
-        Write-Host "AIB Customization: Expand zip file"
-        Expand-Archive -Path "$env:SystemDrive\\devbox-customizations\\PWRBLDR-2017-1666-UNV-EN-bds.zip" -DestinationPath "$env:SystemDrive\\devbox-customizations" -Force
-        Write-Host "AIB Customization: Run installer"
-        $env:AgreeToAppeonLicense="true"
-        Push-Location -Path "$env:SystemDrive\\devbox-customizations\\PWRBLDR-2017-1666-UNV-EN-bds"
-        $(Start-Process .\\silentinstall.bat -ArgumentList "opt=all", "log=$env:SystemDrive\\devbox-customizations\\powerbuilder" -PassThru) | Wait-Process
-        // './silentinstall.bat --% "opt=all" "log=$env:SystemDrive\\devbox-customizations\\powerbuilder"'
-        Start-Sleep -Seconds 120
-        Write-Host "AIB Customization: Cleanup install files"
-        Pop-Location
-        Remove-Item -Path "$env:SystemDrive\\devbox-customizations\\PWRBLDR-2017-1666-UNV-EN-bds" -Recurse -Force
-
-  - name: ~/powershell
-    description: Install Trusted Signing Client Tools
-    parameters:
-      command: |
-        Write-Host "AIB Customization: Install Trusted Signing Client Tools"
-        # Script Source: https://learn.microsoft.com/en-us/azure/trusted-signing/how-to-signing-integrations#download-and-install-signtool
-        $ProgressPreference = "SilentlyContinue"; Invoke-WebRequest -Uri "https://download.microsoft.com/download/6d9cb638-4d5f-438d-9f21-23f0f4405944/TrustedSigningClientTools.msi" -OutFile "$env:SystemDrive\\devbox-customizations\\TrustedSigningClientTools.msi"; Start-Process msiexec.exe -Wait -ArgumentList "/I $env:SystemDrive\\devbox-customizations\\TrustedSigningClientTools.msi TARGETDIR=$env:SystemDrive\\devbox-customizations\\MicrosoftTrustedSigningClientTools /quiet"; Remove-Item $env:SystemDrive\\devbox-customizations\\TrustedSigningClientTools.msi
-
-  # - name: ~/winget
-  #   parameters:
-  #     downloadUrl: 'https://raw.githubusercontent.com/contoso-co/common-eng-sys/msft-git/dsc-configurations/common-config.dsc.yaml'
-
   - name: ~/winget
-    description: Install SQL Server Management Studio
     parameters:
-      package:  Microsoft.SQLServerManagementStudio
+      downloadUrl: 'https://raw.githubusercontent.com/contoso-co/common-eng-sys/msft-git/dsc-configurations/common-config.dsc.yaml'
 
-  # - name: ~/winget
-  #   description: Install Visual Studio Code
-  #   parameters:
-  #     package:  Microsoft.VisualStudioCode
-
-  # - name: ~/powershell
-  #   description: Install Visual Studio Code Extensions
-  #   parameters:
-  #     command: |
-  #       $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User') 
-  #       code --install-extension github.copilot
-  #       code --install-extension github.copilot-chat        
-  #       code --install-extension GitHub.vscode-github-actions
-  #       code --install-extension ms-vscode-remote.remote-wsl
-  #       code --install-extension ms-vscode-remote.remote-containers
-  #       code --install-extension ms-azuretools.azure-dev
-  #       code --install-extension ms-azuretools.vscode-docker
-  #       code --install-extension ms-dotnettools.csdevkit
-  #       code --install-extension ms-dotnettools.dotnet-maui
+  - name: ~/powershell
+    description: Install Visual Studio Code Extensions
+    parameters:
+      command: |
+        $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User') 
+        code --install-extension github.copilot
+        code --install-extension github.copilot-chat        
+        code --install-extension GitHub.vscode-github-actions
+        code --install-extension ms-vscode-remote.remote-wsl
+        code --install-extension ms-vscode-remote.remote-containers
+        code --install-extension ms-azuretools.azure-dev
+        code --install-extension ms-azuretools.vscode-docker
+        code --install-extension ms-dotnettools.csdevkit
+        code --install-extension ms-dotnettools.dotnet-maui
